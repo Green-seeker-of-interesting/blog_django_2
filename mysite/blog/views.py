@@ -36,12 +36,14 @@ def post_share(request: HttpRequest, post_id: int):
         if form.is_valid():
             cd = form.cleaned_data
             post_url = request.build_absolute_uri(post.get_absolute_url())
+            print(cd)
             subject = '{} ({}) recommends you reading "{}"'.format(
                 cd['name'], cd['email'], post.title)
-            message = 'Read "{}" at {}\n\n{}\'s comments:{}'.format(
-                post.title, post_url, cd['name'], cd['comments'])
+            message = 'Read "{}" at {}\n\n{}\'s coments:{}'.format(
+                post.title, post_url, cd['name'], cd['coments'])
+
             send_mail(subject, message, 'admin@myblog.com', [cd['to']])
             sent = True
-    else:
-        form = EmailPostForm()
-        return render(request, 'blog/post/share.html', {'post': post, 'form': form, 'sent': sent})
+
+    form = EmailPostForm()
+    return render(request, 'blog/post/share.html', {'post': post, 'form': form, 'sent': sent})
