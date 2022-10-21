@@ -1,17 +1,22 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>{% block title %}{% endblock %}</title>
   <link href="{% static 'css/blog.css' %}" rel="stylesheet">
 </head>
+
 <body>
   <div id="content">
     {% block content %}{% endblock %}
   </div>
   <div id="sidebar">
     <h2>Мой блог</h2>
-    <p>Да да я тоже занимаюсь этим</p>
+    <div>
+      <a class="link_to_home" href="/blog/"> На исходную </a>
+    </div>
   </div>
 </body>
+
 </html>

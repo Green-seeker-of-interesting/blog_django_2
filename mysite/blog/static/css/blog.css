@@ -4,10 +4,12 @@ body {
     font-family:helvetica, sans-serif; 
 }
 
+
 a { 
-    color:#00abff;
+    color:#000000;
     text-decoration:none; 
 }
+
 
 h1 { 
     font-weight:normal;

@@ -8,10 +8,27 @@
 {% block content %}
 
   <h1>Статьи</h1>
+  <p class="tags">
+    Tags:
+      {% for tag in my_tags %}
+        <a href='{% url "blog:post_list_by_tag" tag.slug %}'>
+        {{ tag.name }}
+        </a>
+        {% if not forloop.last %}, {% endif %}
+      {% endfor %}
+  </p>
+
+  {% if tag %}
+      <h2>По тегу "{{ tag.name }}"</h2>
+  {% endif %}
+
+
   {% for post in posts %}
     <h2>
       <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
     </h2>
+    <p class="tags">Tags: {{ post.tags.all|join:", " }}</p>
+    
     <p class="date">Опубликованно {{ post.publish }} пользователем {{ post.author }}</p>
     {{ post.body|truncatewords:30|linebreaks }}
   {% endfor %}

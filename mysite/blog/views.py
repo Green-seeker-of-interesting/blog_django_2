@@ -1,10 +1,12 @@
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render, get_list_or_404
+from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.views.generic import ListView
 from django.core.mail import send_mail
 
-from .models import Post
-from .forms import EmailPostForm
+from taggit.models import Tag
+
+from .models import Post, Comment
+from .forms import EmailPostForm, CommentForm
 
 
 class PostListView(ListView):
@@ -18,18 +20,43 @@ class PostListView(ListView):
         context['number_post'] = [
             x + 1 for x in range(context['paginator'].num_pages)]
         context['number_ral'] = context['page_obj'].number
-
+        context['my_tags'] = get_list_or_404(Tag)
         return context
 
 
+def post_list_with_tag(request: HttpRequest, tag_slug=None) -> HttpResponse:
+    object_list = Post.published.all()
+    tags = get_object_or_404(Tag, slug=tag_slug)
+    object_list = object_list.filter(tags__in=[tags])
+    return render(request, 'blog/post/list.html',
+                  {'posts': object_list,
+                   'tag': tags})
+
+
 def post_detail(request: HttpRequest, year: int, month: int, day: int, post: str) -> HttpResponse:
-    post = get_list_or_404(Post, slug=post, status='published',
-                           publish__year=year, publish__month=month, publish__day=day)
-    return render(request, 'blog/post/detail.html', {'post': post[0]})
+    post: Post = get_object_or_404(Post, slug=post, status='published',
+                                   publish__year=year, publish__month=month, publish__day=day)
+    comments = post.comments.filter(active=True)
+    new_comment = None
+
+    if request.method == 'POST':
+        comment_form = CommentForm(data=request.POST)
+        if comment_form.is_valid():
+            new_comment = comment_form.save(commit=False)
+            new_comment.post = post
+            new_comment.save()
+    else:
+        comment_form = CommentForm()
+
+    return render(request, 'blog/post/detail.html',
+                  {'post': post,
+                   'comments': comments,
+                   'new_comment': new_comment,
+                   'comment_form': comment_form})
 
 
 def post_share(request: HttpRequest, post_id: int):
-    post = get_list_or_404(Post, pk=post_id, status='published')[0]
+    post = get_object_or_404(Post, pk=post_id, status='published')
     sent = False
     if request.method == "POST":
         form = EmailPostForm(request.POST)
