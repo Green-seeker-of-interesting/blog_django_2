@@ -5,7 +5,7 @@
 
 <head>
   <title>{% block title %}{% endblock %}</title>
-  <link href="{% static 'css/blog.css' %}?v=1" rel="stylesheet">
+  <link href="{% static 'css/blog.css' %}?v=1.01" rel="stylesheet">
   
   <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="pragma" content="no-cache" />
@@ -18,9 +18,11 @@
     {% block content %}{% endblock %}
   </div>
   <div id="sidebar">
-    <h2>Мой блог</h2>
+    
     <div>
-      <a class="link_to_home" href="/blog/"> На исходную </a>
+      <a class="link_to_home" href="/blog/"> <h2>Мой блог</h2> </a>
+      <hr>
+
       {% if similar_posts %}
       <h3>Так же почитайте</h3>
         <ul>
@@ -41,6 +43,13 @@
           <li><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></li>
         {% endfor %}
       </ul>
+
+      <hr>
+      <p>
+        <a href='{% url "blog:post_search" %}'>Поиск</a>
+        <br>
+        <a href='{% url "blog:post_feed" %}'>Rss</a>
+      </p>
 
     </div>
   </div>

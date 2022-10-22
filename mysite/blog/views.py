@@ -3,11 +3,13 @@ from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.views.generic import ListView
 from django.core.mail import send_mail
 from django.db.models import Count
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+
 
 from taggit.models import Tag
 
-from .models import Post, Comment
-from .forms import EmailPostForm, CommentForm
+from .models import Post
+from .forms import EmailPostForm, CommentForm, SearchForm
 
 
 class PostListView(ListView):
@@ -39,7 +41,7 @@ def post_detail(request: HttpRequest, year: int, month: int, day: int, post: str
     post: Post = get_object_or_404(Post, slug=post, status='published',
                                    publish__year=year, publish__month=month, publish__day=day)
     comments = post.comments.filter(active=True)
-    
+
     # форма коментариев
     new_comment = None
     if request.method == 'POST':
@@ -58,13 +60,12 @@ def post_detail(request: HttpRequest, year: int, month: int, day: int, post: str
     similar_posts = similar_posts.annotate(same_tags=Count('tags'))\
         .order_by('-same_tags', '-publish')[:4]
 
-
     return render(request, 'blog/post/detail.html',
                   {'post': post,
                    'comments': comments,
                    'new_comment': new_comment,
                    'comment_form': comment_form,
-                   'similar_posts': similar_posts,})
+                   'similar_posts': similar_posts, })
 
 
 def post_share(request: HttpRequest, post_id: int):
@@ -85,4 +86,29 @@ def post_share(request: HttpRequest, post_id: int):
             sent = True
 
     form = EmailPostForm()
-    return render(request, 'blog/post/share.html', {'post': post, 'form': form, 'sent': sent})
+    return render(request, 'blog/post/share.html',
+                  {'post': post,
+                   'form': form,
+                   'sent': sent})
+
+
+def post_search(request):
+    form = SearchForm()
+    query = None
+    results = []
+    if 'q' in request.GET:
+        form = SearchForm(request.GET)
+
+    if form.is_valid():
+        query = form.cleaned_data['q']
+        search_vector = SearchVector('title', weight='A') + SearchVector('body', weight='B')
+        search_query = SearchQuery(query)
+        results = Post.published.annotate(
+            search=search_vector,
+            rank=SearchRank(search_vector, search_query)
+        ).filter(rank__gte=0.3).order_by('-rank')
+
+    return render(request, 'blog/post/search.html',
+                  {'form': form,
+                   'query': query,
+                   'results': results})
