@@ -9,13 +9,15 @@
 
   <h1>Статьи</h1>
   <p class="tags">
+    {% if my_tags %}
     Tags:
       {% for tag in my_tags %}
         <a href='{% url "blog:post_list_by_tag" tag.slug %}'>
         {{ tag.name }}
         </a>
         {% if not forloop.last %}, {% endif %}
-      {% endfor %}
+      {% endfor %}      
+    {% endif %}
   </p>
 
   {% if tag %}

@@ -1,10 +1,16 @@
 {% load static %}
+{% load blog_tags %}
 <!DOCTYPE html>
 <html>
 
 <head>
   <title>{% block title %}{% endblock %}</title>
-  <link href="{% static 'css/blog.css' %}" rel="stylesheet">
+  <link href="{% static 'css/blog.css' %}?v=1" rel="stylesheet">
+  
+  <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="pragma" content="no-cache" />
+  <meta http-equiv="expires" content="0" />
+  
 </head>
 
 <body>
@@ -15,6 +21,27 @@
     <h2>Мой блог</h2>
     <div>
       <a class="link_to_home" href="/blog/"> На исходную </a>
+      {% if similar_posts %}
+      <h3>Так же почитайте</h3>
+        <ul>
+          {% for post in similar_posts %}
+            <li> <a href="{{ post.get_absolute_url }}">{{ post.title }}</a> </li>
+          {% endfor %}
+        </ul>        
+      {% endif %}
+
+      <h3>Последние записи</h3>
+      {% show_latest_posts %}
+
+
+      <h3>Самые обсуждаемые</h3>
+      {% get_most_commented_posts as most_commented_posts %}
+      <ul>
+        {% for post in most_commented_posts %}
+          <li><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></li>
+        {% endfor %}
+      </ul>
+
     </div>
   </div>
 </body>
